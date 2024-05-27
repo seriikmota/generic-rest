@@ -6,7 +6,7 @@ import dev.erikmota.generic_rest.entity.impl.GenericModel;
 import dev.erikmota.generic_rest.exceptions.DataException;
 import dev.erikmota.generic_rest.exceptions.ParameterRequiredException;
 import dev.erikmota.generic_rest.exceptions.errorMessages.ErrorEnum;
-import dev.erikmota.generic_rest.service.IGenericService;
+import dev.erikmota.generic_rest.service.ISimpleGenericService;
 import dev.erikmota.generic_rest.validations.IValidations;
 import dev.erikmota.generic_rest.validations.ValidationAction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
 
-public abstract class GenericServiceImpl<DTO, DTOCreate, DTOUpdate, DTOList, MODEL extends GenericModel<TYPE_PK>, REPOSITORY extends JpaRepository<MODEL, TYPE_PK>, TYPE_PK> implements IGenericService<DTO, DTOCreate, DTOUpdate, DTOList, TYPE_PK> {
+public abstract class SimpleGenericServiceImpl<DTO, MODEL extends GenericModel<TYPE_PK>, REPOSITORY extends JpaRepository<MODEL, TYPE_PK>, TYPE_PK> implements ISimpleGenericService<DTO, TYPE_PK> {
 
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
@@ -34,16 +34,16 @@ public abstract class GenericServiceImpl<DTO, DTOCreate, DTOUpdate, DTOList, MOD
     private final Map<String, Class<?>> classMap = getGenericClass(getClass());
 
     @SuppressWarnings("unchecked")
-    public List<DTOList> listAll() {
-        List<DTOList> list = new ArrayList<>();
+    public List<DTO> listAll() {
+        List<DTO> list = new ArrayList<>();
         for (MODEL model : repository.findAll()) {
-            list.add(mapper.convertValue(model, (Class<DTOList>) classMap.get("DTOList")));
+            list.add(mapper.convertValue(model, (Class<DTO>) classMap.get("DTO")));
         }
         return list;
     }
 
     @SuppressWarnings("unchecked")
-    public DTO create(DTOCreate dtoCreate) {
+    public DTO create(DTO dtoCreate) {
         MODEL data = mapper.convertValue(dtoCreate, (Class<MODEL>) classMap.get("MODEL"));
         prepareToCreate(data);
         validateMandatoryFields(data);
@@ -53,7 +53,7 @@ public abstract class GenericServiceImpl<DTO, DTOCreate, DTOUpdate, DTOList, MOD
     }
 
     @SuppressWarnings("unchecked")
-    public DTO update(TYPE_PK id, DTOUpdate dtoUpdate) throws JsonMappingException {
+    public DTO update(TYPE_PK id, DTO dtoUpdate) throws JsonMappingException {
         var dataDB = validateIdModelExistsAndGet(id);
         mapper.updateValue(dataDB, dtoUpdate);
         prepareToUpdate(dataDB);
